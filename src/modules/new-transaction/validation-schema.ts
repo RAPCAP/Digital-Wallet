@@ -6,7 +6,7 @@ export const NewTransactionFormValidationSchema = yup.object().shape({
     .string()
     .max(12, "It's so much")
     .test({
-      test: v => !isNaN(Number(v)),
+      test: v => !isNaN(Number(v)) && Number(v) > 0,
       message: 'Invalid number',
     })
     .required('Required'),

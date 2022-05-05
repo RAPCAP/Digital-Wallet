@@ -1,37 +1,54 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Routes, RoutesParams } from 'src/navigation/routes';
-import { getLastOpenIndexCard, getAllCards, qSortByIndex } from 'src/tools';
-import { CardFromStorageType } from 'src/types';
+import {
+  getLastOpenIndexCardStorage,
+  setLastOpenIndexCardStorage,
+} from 'src/tools';
+import { CardsContext, TransactionsContext } from 'src/hooks';
 
 import { CardCarousel } from './card-carousel';
-import { History } from './history';
+import { Transactions } from './transactions';
 
 const Root = styled(SafeAreaView)`
   flex: 1;
 `;
-
 const CardCarouselWrapper = styled(View)`
   flex: 1;
 `;
-const HistoryWrapper = styled(View)`
+const TransactionsWrapper = styled(View)`
   flex: 2;
+  padding-top: 4px;
 `;
 
 export const Dashboard = () => {
   const navigation = useNavigation<RoutesParams>();
-
   const [isLoading, setIsLoading] = useState(true);
-  const [cards, setCards] = useState<CardFromStorageType[]>([]);
+  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
 
-  const [firstCardIndex, setFirstCardIndex] = useState(0);
+  const { isLoading: isCardsLoading, cards } = useContext(CardsContext);
 
-  const [currentCardIndex, setCurrentCardIndex] = useState(0); // use specific and unique index of card
-  const [activeCarouselItemIndex, setActiveCarouselItemIndex] = useState(0); // use index of card in data
+  const cardsRef = useRef(cards);
+  useEffect(() => {
+    cardsRef.current = cards;
+  }, [cards]);
+
+  // use specific and unique index of card in storage
+  const { currentTransactionsList, setTransactionsForCardIndex } =
+    useContext(TransactionsContext);
+
+  // first card to display
+  const [firstCarouselIndex, setFirstCarouselIndex] = useState(0);
 
   const onAddTransaction = useCallback(
     (index: number) => {
@@ -42,79 +59,78 @@ export const Dashboard = () => {
     [navigation],
   );
 
-  const getCarouselIndexByCardIndex = useCallback(
-    (cardIndex: number) => {
-      let result = 0;
-      cards.find((item, indexInList) => {
-        if (item.index === cardIndex) {
-          result = indexInList;
-        }
-      });
-      return result;
-    },
-    [cards],
-  );
-
-  const updateCards = useCallback(() => {
-    const getCards = async () => {
-      const cardsData = await getAllCards();
-
-      // source data not sorted by index
-      const sortedCard = qSortByIndex(cardsData);
-      const firstSortedCardIndex = sortedCard[0]?.index ?? undefined;
-
-      //may set wrong index when returning from modal window
-      if (!firstSortedCardIndex) {
-        setCurrentCardIndex(firstSortedCardIndex);
+  const getCarouselIndexByCardIndex = useCallback((cardIndex: number) => {
+    let result = 0;
+    cardsRef.current.find((item, indexInList) => {
+      if (item.index === cardIndex) {
+        result = indexInList;
+        return true;
       }
+    });
 
-      setCards(sortedCard);
-    };
-
-    getCards();
+    return result;
   }, []);
 
+  // get index of last number
+  const init = useCallback(async () => {
+    const lastOpenIndex = await getLastOpenIndexCardStorage();
+
+    // may be card was removed
+    const isLastOpenIndexActual = Boolean(
+      cardsRef.current.find(card => card.index === lastOpenIndex),
+    );
+
+    if (isLastOpenIndexActual) {
+      setTransactionsForCardIndex(lastOpenIndex);
+      const carouselIndex = getCarouselIndexByCardIndex(lastOpenIndex);
+      setFirstCarouselIndex(carouselIndex);
+      setActiveCarouselIndex(carouselIndex);
+    } else {
+      const nowFirstCardIndex = cardsRef.current?.[0]?.index || 0;
+      setTransactionsForCardIndex(nowFirstCardIndex);
+      setLastOpenIndexCardStorage(nowFirstCardIndex);
+
+      setFirstCarouselIndex(0);
+    }
+
+    setIsLoading(false);
+  }, [getCarouselIndexByCardIndex, setTransactionsForCardIndex]);
+
   useEffect(() => {
-    if (!cards.length) {
+    if (isCardsLoading) {
       return;
     }
 
-    const setLastOpenCard = async () => {
-      const lastOpenIndex = await getLastOpenIndexCard();
+    init();
+  }, [init, isCardsLoading]);
 
-      const carouselIndex = getCarouselIndexByCardIndex(lastOpenIndex);
-      setFirstCardIndex(carouselIndex);
-      setActiveCarouselItemIndex(carouselIndex);
-
-      setCurrentCardIndex(lastOpenIndex);
-      setIsLoading(false);
-    };
-
-    setLastOpenCard();
-  }, [cards, getCarouselIndexByCardIndex]);
-
-  // AsyncStorage.clear();
-  useFocusEffect(updateCards);
+  const onSnapToItem = useCallback(
+    (orderIndex: number) => {
+      const cardIndex = cards[orderIndex]?.index;
+      setActiveCarouselIndex(orderIndex);
+      setTransactionsForCardIndex(cardIndex);
+      setLastOpenIndexCardStorage(cardIndex);
+    },
+    [setTransactionsForCardIndex, cards],
+  );
 
   return (
     <Root>
-      {!isLoading && (
+      {!isLoading && !isCardsLoading && (
         <>
           <CardCarouselWrapper>
             <CardCarousel
               cards={cards}
-              firstItem={firstCardIndex}
-              currentCardIndex={currentCardIndex}
-              setCurrentCardIndex={setCurrentCardIndex}
+              firstItem={firstCarouselIndex}
+              activeCarouselIndex={activeCarouselIndex}
+              onSnapToItem={onSnapToItem}
               onAddTransaction={onAddTransaction}
-              activeCarouselItemIndex={activeCarouselItemIndex}
-              setActiveCarouselItemIndex={setActiveCarouselItemIndex}
             />
           </CardCarouselWrapper>
 
-          <HistoryWrapper>
-            <History currentCardIndex={currentCardIndex} />
-          </HistoryWrapper>
+          <TransactionsWrapper>
+            <Transactions transactionsList={currentTransactionsList} />
+          </TransactionsWrapper>
         </>
       )}
     </Root>

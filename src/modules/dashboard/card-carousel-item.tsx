@@ -14,14 +14,12 @@ const CardItem = styled(View)<{ cardColor: string }>`
   border-radius: ${normVert(10)}px;
   height: ${normVert(130)}px;
 `;
-
 const CardName = styled(Text)`
   font-size: ${normVert(16)}px;
   padding-left: ${normHor(20)}px;
   padding-top: ${normVert(8)}px;
   flex: 1;
 `;
-
 const Amount = styled(Text)`
   font-size: ${normVert(20)}px;
   text-align: center;
@@ -31,7 +29,6 @@ const Button = styled(TouchableOpacity)`
   flex: 1;
   justify-content: center;
   align-items: center;
-  font-size: 20px;
 `;
 const ButtonText = styled(Text)`
   font-size: ${normVert(12)}px;
@@ -59,8 +56,7 @@ export const CarouselItem = ({ item, onAddTransaction }: Props) => {
 
   const onPress = useCallback(() => {
     onAddTransaction(index);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
+  }, [index, onAddTransaction]);
 
   return (
     <CardItemRoot>

@@ -19,7 +19,7 @@ const ErrorText = styled(Text)`
   color: ${colors.red};
 `;
 const ErrorView = styled(View)`
-  height: ${normVert(12)}px;
+  height: ${normVert(15)}px;
   padding-top: ${normVert(4)}px;
   padding-left: ${normHor(5)}px;
 `;

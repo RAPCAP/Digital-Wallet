@@ -5,7 +5,7 @@ import styled from 'styled-components/native';
 import { normVert, colors } from 'src/theme';
 
 const Root = styled(View)`
-  height: ${normVert(15)}px;
+  height: ${normVert(16)}px;
 `;
 const FeedbackText = styled(Text)<{ isSuccessful: boolean }>`
   color: ${p => (p.isSuccessful ? colors.green : colors.red)}

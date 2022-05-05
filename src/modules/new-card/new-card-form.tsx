@@ -1,12 +1,12 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { View, Text } from 'react-native';
-
 import { Formik } from 'formik';
 import styled from 'styled-components/native';
 
 import { InputForm, Feedback, ConfirmButton } from 'src/ui';
-import { addNewCard } from 'src/tools';
+import { addNewCardStorage } from 'src/tools';
 import { normVert, colors } from 'src/theme';
+import { CardsContext } from 'src/hooks';
 
 import { NewCardFormValidationSchema } from './validation-schema';
 
@@ -27,26 +27,27 @@ const initialValues: NewCardFormValueType = {
   initialAmount: '',
 };
 
-export const NewCardForm = ({}) => {
+export const NewCardForm = ({ goBack }: { goBack: () => void }) => {
   const [isSaved, setIsSaved] = useState<boolean | undefined>();
-
-  const submitCallback = useCallback(error => {
-    setIsSaved(error ? false : true);
-  }, []);
+  const { updateCards } = useContext(CardsContext);
 
   const onSubmit = useCallback(
-    (values: NewCardFormValueType) => {
+    async (values: NewCardFormValueType) => {
       const { cardName, initialAmount } = values;
 
-      addNewCard(
+      addNewCardStorage(
         {
           name: cardName,
           amount: Number(initialAmount), // checked in validation scheme
         },
-        submitCallback,
+        () => {
+          setIsSaved(true);
+          updateCards();
+          goBack();
+        },
       );
     },
-    [submitCallback],
+    [goBack, updateCards],
   );
 
   return (

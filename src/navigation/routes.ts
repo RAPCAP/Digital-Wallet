@@ -28,8 +28,10 @@ export type RouteParamMap = {
 };
 
 export type RoutesParams = NavigationProp<RouteParamMap>;
+
 export type UseRouseParams<Screen extends keyof RouteParamMap> = RouteProp<
   RouteParamMap,
   Screen
 >;
+
 export type StackScreenProps = DefaultStackScreenProps<RouteParamMap, Routes>;

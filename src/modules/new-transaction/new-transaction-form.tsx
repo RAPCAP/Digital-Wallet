@@ -1,13 +1,14 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { View, Text } from 'react-native';
 import { Formik } from 'formik';
 import styled from 'styled-components/native';
 import { useRoute } from '@react-navigation/native';
 
 import { InputForm, Feedback, PairedButtons } from 'src/ui';
-import { addTransaction } from 'src/tools';
+import { addTransactionStorage } from 'src/tools';
 import { OperationType } from 'src/types';
 import { Routes, UseRouseParams } from 'src/navigation/routes';
+import { CardsContext, TransactionsContext } from 'src/hooks';
 import { normVert, colors } from 'src/theme';
 
 import { NewTransactionFormValidationSchema } from './validation-schema';
@@ -35,26 +36,28 @@ export const NewTransactionForm = () => {
   const [isSaved, setIsSaved] = useState<boolean | undefined>();
   const route = useRoute<UseRouseParams<Routes.ModalAddTransaction>>();
 
-  const submitCallback = useCallback(error => {
-    setIsSaved(error ? false : true);
-  }, []);
+  const { updateTransactions } = useContext(TransactionsContext);
+  const { updateCardByIndex } = useContext(CardsContext);
 
-  const index = route?.params?.cardIndex as number;
+  const cardIndex = route?.params?.cardIndex as number;
 
   const onSubmit = useCallback(
     ({ comment, amount, operationType }: NewTransactionFormType) => {
-      addTransaction(
+      addTransactionStorage(
         {
-          index,
+          index: cardIndex,
           comment,
           amount: Number(amount), // checked in validation scheme
           operationType: operationType as OperationType, // set on submit
         },
-        submitCallback,
+        () => {
+          updateTransactions();
+          updateCardByIndex(cardIndex);
+          setIsSaved(true);
+        },
       );
-      setIsSaved(true);
     },
-    [index, submitCallback],
+    [cardIndex, updateCardByIndex, updateTransactions],
   );
 
   return (
@@ -88,11 +91,11 @@ export const NewTransactionForm = () => {
           />
           <PairedButtons
             textLeft={'Income'}
-            textRight={'Expense'}
             onPressLeft={() => {
               props.setFieldValue('operationType', OperationType.Income);
               props.submitForm();
             }}
+            textRight={'Expense'}
             onPressRight={() => {
               props.setFieldValue('operationType', OperationType.Expense);
               props.submitForm();

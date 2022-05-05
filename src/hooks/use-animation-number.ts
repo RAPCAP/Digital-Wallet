@@ -5,10 +5,8 @@ export const useAnimatedNumber = (
   oldValue: number,
   newValue: number,
 ): number | void => {
-  const firstValue = oldValue;
-
-  const animatedValue = useRef(new Animated.Value(firstValue)).current;
   const [result, setResult] = useState(oldValue);
+  const animatedValue = useRef(new Animated.Value(oldValue)).current;
 
   useEffect(() => {
     Animated.timing(animatedValue, {

@@ -1,6 +1,6 @@
 import { CardFromStorageType } from 'src/types';
 
-export const qSortByIndex = (
+export const qSortCardByIndex = (
   cards: CardFromStorageType[],
 ): CardFromStorageType[] => {
   if (cards.length <= 1) {
@@ -17,5 +17,5 @@ export const qSortByIndex = (
     cards[i].index < pivotIndex ? left.push(cards[i]) : right.push(cards[i]);
   }
 
-  return qSortByIndex(left).concat(pivot, qSortByIndex(right));
+  return qSortCardByIndex(left).concat(pivot, qSortCardByIndex(right));
 };

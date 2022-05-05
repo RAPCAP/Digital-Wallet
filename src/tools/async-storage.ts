@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import {
-  CardItemType,
+  AddCardItemType,
   OperationType,
   NewTransactionType,
   TransactionType,
@@ -13,11 +13,11 @@ const LAST_OPEN_CARD_KEY = 'lastOpen';
 const CARD_PREFIX = 'card-';
 const TRANSACTION_PREFIX = 'tran-';
 
-export const getAllKey = async () => {
+const getAllKeyStorage = async () => {
   return await AsyncStorage.getAllKeys();
 };
 
-export const setLastIndexAbove = async (): Promise<number> => {
+const setLastIndexAboveStorage = async (): Promise<number> => {
   const currentLast = await AsyncStorage.getItem(LAST_INDEX_KEY);
 
   const nextIndex = currentLast ? String(Number(currentLast) + 1) : '1';
@@ -27,19 +27,19 @@ export const setLastIndexAbove = async (): Promise<number> => {
   return Number(nextIndex);
 };
 
-export const addNewCard = async (
-  value: CardItemType,
+export const addNewCardStorage = async (
+  value: AddCardItemType,
   callback?: (error?: Error, result?: string) => void,
 ) => {
-  const index = await setLastIndexAbove();
+  const index = await setLastIndexAboveStorage();
 
   const data = JSON.stringify({ ...value, index, transactionsCount: 0 });
 
-  AsyncStorage.setItem(`${CARD_PREFIX}${index}`, data, callback);
+  return AsyncStorage.setItem(`${CARD_PREFIX}${index}`, data, callback);
 };
 
-export const getAllCards = async (): Promise<CardFromStorageType[]> => {
-  const keys = await getAllKey();
+export const getAllCardsStorage = async (): Promise<CardFromStorageType[]> => {
+  const keys = await getAllKeyStorage();
 
   const cardKeys = keys.filter(i => i.includes(CARD_PREFIX));
 
@@ -52,24 +52,25 @@ export const getAllCards = async (): Promise<CardFromStorageType[]> => {
   return data as CardFromStorageType[];
 };
 
-export const removeCard = async (index: number) => {
+export const removeCardStorage = async (index: number) => {
   AsyncStorage.removeItem(`${TRANSACTION_PREFIX}${index}`);
   AsyncStorage.removeItem(`${CARD_PREFIX}${index}`);
 };
 
-const getCard = async (index: number): Promise<CardFromStorageType> => {
+export const getCardStorage = async (
+  index: number,
+): Promise<CardFromStorageType> => {
   const key = `${CARD_PREFIX}${index}`;
   const cardJSON = await AsyncStorage.getItem(key);
 
-  //TODO
   return (cardJSON && JSON.parse(cardJSON)) as CardFromStorageType;
 };
 
-export const addTransaction = async (
+export const addTransactionStorage = async (
   { amount, comment, operationType, index }: NewTransactionType,
-  callback: (error?: Error, result?: string) => void,
+  callback?: (error?: Error, result?: string) => void,
 ) => {
-  const card = await getCard(index);
+  const card = await getCardStorage(index);
   const { transactionsCount } = card;
   const indexTransaction = transactionsCount + 1;
 
@@ -99,8 +100,10 @@ export const addTransaction = async (
   await AsyncStorage.setItem(cardKey, JSON.stringify(cardData), callback);
 };
 
-export const getAllTransactions = async (): Promise<TransactionType[]> => {
-  const keys = await getAllKey();
+export const getAllTransactionsStorage = async (): Promise<
+  TransactionType[]
+> => {
+  const keys = await getAllKeyStorage();
 
   const cardKeys = keys.filter(i => i.includes(TRANSACTION_PREFIX));
 
@@ -113,10 +116,10 @@ export const getAllTransactions = async (): Promise<TransactionType[]> => {
   return data as TransactionType[];
 };
 
-export const setLastOpenIndexCard = async (index: number) => {
+export const setLastOpenIndexCardStorage = async (index: number) => {
   await AsyncStorage.setItem(LAST_OPEN_CARD_KEY, String(index));
 };
 
-export const getLastOpenIndexCard = async (): Promise<number> => {
+export const getLastOpenIndexCardStorage = async (): Promise<number> => {
   return Number((await AsyncStorage.getItem(LAST_OPEN_CARD_KEY)) || 0);
 };

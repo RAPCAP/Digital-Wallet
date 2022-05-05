@@ -1,15 +1,15 @@
-import React, { useCallback, useState } from 'react';
+import React, { useContext } from 'react';
 import { ScrollView } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getAllCards, removeCard, qSortByIndex } from 'src/tools';
-import { CardFromStorageType } from 'src/types';
+import { removeCardStorage } from 'src/tools';
 import { normVert, normHor } from 'src/theme';
+import { CardsContext } from 'src/hooks';
 
-import { CardListItem } from './ui/card-list-item';
-import { Header } from './ui/header';
+import { CardListItem } from './card-list-item';
+import { Header } from './header';
+import { NoDataMessage } from 'src/ui';
 
 const Root = styled(SafeAreaView)`
   flex: 1;
@@ -20,43 +20,35 @@ const ScrollList = styled(ScrollView)`
   padding-left: ${normHor(16)}px;
 `;
 
-export const Settings = () => {
-  const [cards, setCards] = useState<CardFromStorageType[]>([]);
-
-  const updateCards = useCallback(() => {
-    const getCards = async () => {
-      const cardsData = await getAllCards();
-
-      // source data not sorted by index
-      const sortedCard = qSortByIndex(cardsData);
-
-      setCards(sortedCard);
-    };
-
-    getCards();
-  }, []);
-
-  useFocusEffect(updateCards);
+export const Settings = ({}: any) => {
+  const { cards, onRemovedCard, updateCards } = useContext(CardsContext);
 
   const onRemoveCard = (index: number) => {
-    removeCard(index);
-    setCards(prevCards => prevCards.filter(card => card.index !== index));
-    // could be like that, but it's not optimal because of sorting
-    // removeCard(index).then(updateCards);
+    removeCardStorage(index);
+    onRemovedCard(index);
+    updateCards();
   };
 
   return (
     <Root>
       <Header />
       <ScrollList>
-        {cards.map(({ name, index }) => (
-          <CardListItem
-            key={index}
-            index={index}
-            name={name}
-            onRemoveCard={onRemoveCard}
+        {cards.length ? (
+          cards.map(({ name, index }) => (
+            <CardListItem
+              key={index}
+              index={index}
+              name={name}
+              onRemoveCard={onRemoveCard}
+            />
+          ))
+        ) : (
+          <NoDataMessage
+            message="Let's add"
+            funnyEmojiText="(　-_･) ︻デ═一 "
+            rotateEmojiDegree={-25}
           />
-        ))}
+        )}
       </ScrollList>
     </Root>
   );

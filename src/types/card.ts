@@ -1,4 +1,4 @@
-export type CardItemType = {
+export type AddCardItemType = {
   name: string;
   amount: number;
 };

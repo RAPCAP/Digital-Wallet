@@ -10,7 +10,7 @@ export const NewCardScreen = ({ navigation }: StackScreenProps) => {
 
   return (
     <ModalWindow goBack={goBack}>
-      <NewCardForm />
+      <NewCardForm goBack={goBack} />
     </ModalWindow>
   );
 };

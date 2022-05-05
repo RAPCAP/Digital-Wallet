@@ -3,9 +3,9 @@ import { useWindowDimensions } from 'react-native';
 import { TabView, SceneMap } from 'react-native-tab-view';
 
 import { Settings, Dashboard } from 'src/modules';
+import { TabBar } from 'src/ui';
 
 import { Routes } from './routes';
-import { TabBar } from 'src/ui';
 
 const renderScene = SceneMap({
   [Routes.Dashboard]: Dashboard,

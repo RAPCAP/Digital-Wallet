@@ -38,7 +38,7 @@ type Props = {
 };
 
 export const CardListItem = ({ name, index, onRemoveCard }: Props) => {
-  const removeCard = useCallback(() => {
+  const onPress = useCallback(() => {
     onRemoveCard(index);
   }, [index, onRemoveCard]);
 
@@ -53,7 +53,7 @@ export const CardListItem = ({ name, index, onRemoveCard }: Props) => {
           <Name>{name}</Name>
         </LeftContent>
 
-        <RemoveButton onPress={removeCard}>
+        <RemoveButton onPress={onPress}>
           <Text>✕</Text>
         </RemoveButton>
       </Root>

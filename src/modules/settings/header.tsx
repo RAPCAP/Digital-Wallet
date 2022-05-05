@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import styled from 'styled-components/native';
@@ -44,6 +44,11 @@ export const Header = (): JSX.Element => {
   const theme = useTheme();
   const navigation = useNavigation<RoutesParams>();
 
+  const onPressAdd = useCallback(
+    () => navigation.navigate(Routes.ModalAddCard),
+    [navigation],
+  );
+
   const color = theme.colors.primary;
 
   return (
@@ -55,7 +60,7 @@ export const Header = (): JSX.Element => {
       </CenterContent>
 
       <LeftContent>
-        <AddButton onPress={() => navigation.navigate(Routes.ModalAddCard)}>
+        <AddButton onPress={onPressAdd}>
           <HeaderRightText color={color}>Add</HeaderRightText>
         </AddButton>
       </LeftContent>

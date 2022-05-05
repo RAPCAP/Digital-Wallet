@@ -1,15 +1,18 @@
-import React, { useCallback, Dispatch, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Dimensions } from 'react-native';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 
-import { setLastOpenIndexCard } from 'src/tools';
 import { CardFromStorageType } from 'src/types';
 import { normVert, colors } from 'src/theme';
+import { NoDataMessage } from 'src/ui';
 
 import { CarouselItem } from './card-carousel-item';
 
 const sliderWidth = Dimensions.get('window').width;
 const sliderHeight = Dimensions.get('window').height;
+
+const noCardsMessage = `There are no cards yet
+You can add them on the settings screen`;
 
 const containerStyle = {
   backgroundColor: 'transparent',
@@ -30,40 +33,29 @@ const inactiveDotStyle = {
 type Props = {
   cards: CardFromStorageType[];
   firstItem: number;
-  currentCardIndex: number;
-  activeCarouselItemIndex: number;
+  activeCarouselIndex: number;
   onAddTransaction: (index: number) => void;
-  setCurrentCardIndex: Dispatch<React.SetStateAction<number>>;
-  setActiveCarouselItemIndex: Dispatch<React.SetStateAction<number>>;
+  onSnapToItem: (index: number) => void;
 };
 export const CardCarousel = ({
   cards,
   firstItem,
-  activeCarouselItemIndex,
-  setCurrentCardIndex,
+  activeCarouselIndex,
+  onSnapToItem,
   onAddTransaction,
-  setActiveCarouselItemIndex,
 }: Props) => {
   const [carouselRef, setCarouselRef] = useState<any>(); // has so complex type
-
-  const onSnapToItem = useCallback(
-    (orderIndex: number) => {
-      setActiveCarouselItemIndex(orderIndex);
-
-      const cardIndex = cards[orderIndex]?.index;
-      setCurrentCardIndex(cardIndex);
-      setLastOpenIndexCard(cardIndex);
-    },
-    [cards, setCurrentCardIndex, setActiveCarouselItemIndex],
-  );
 
   const renderItem = useCallback(
     ({ item }: { item: CardFromStorageType }): React.ReactElement => (
       <CarouselItem item={item} onAddTransaction={onAddTransaction} />
     ),
-
     [onAddTransaction],
   );
+
+  if (!cards.length) {
+    return <NoDataMessage funnyEmojiText="◑.◑" message={noCardsMessage} />;
+  }
 
   return (
     <>
@@ -85,7 +77,7 @@ export const CardCarousel = ({
         <Pagination
           carouselRef={carouselRef}
           dotsLength={cards.length}
-          activeDotIndex={activeCarouselItemIndex}
+          activeDotIndex={activeCarouselIndex}
           containerStyle={containerStyle}
           dotStyle={dotStyle}
           tappableDots

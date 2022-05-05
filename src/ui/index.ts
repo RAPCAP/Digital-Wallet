@@ -5,3 +5,4 @@ export * from './confirm-button';
 export * from './feedback';
 export * from './paired-buttons';
 export * from './tab-bar';
+export * from './no-data-message';
